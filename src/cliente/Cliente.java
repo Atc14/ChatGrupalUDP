@@ -14,23 +14,16 @@ public class Cliente {
     public static void main(String[] args) {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         try {
-            MulticastSocket socket=new MulticastSocket(6005);
-            InetAddress grupo= InetAddress.getByName("228.0.0.15");
+            MulticastSocket socket = new MulticastSocket(6005);
+            InetAddress grupo = InetAddress.getByName("228.0.0.15");
             socket.joinGroup(grupo);
             System.out.println("Introduce el nombre de tu usuario: ");
             String userName = br.readLine();
-            DatagramPacket dp;
-            byte [] buffer;
-            HiloCliente hc = new HiloCliente(socket, grupo);
+
+            HiloCliente hc = new HiloCliente(socket, grupo, userName);
             hc.start();
-            while(true){
-                Mensaje m = new Mensaje(userName, br.readLine());
-                buffer = m.getMensaje().getBytes();
-                dp = new DatagramPacket(buffer, buffer.length, InetAddress.getByName("228.0.0.15"),6005);
-                socket.send(dp);
-            }
-        }
-        catch (IOException e) {
+
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }

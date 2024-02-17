@@ -1,6 +1,8 @@
 package datos;
 
-public class Mensaje {
+import java.io.Serializable;
+
+public class Mensaje implements Serializable {
     private final String userName;
     private final String texto;
 
