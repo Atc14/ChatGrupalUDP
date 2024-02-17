@@ -15,6 +15,7 @@ public class HiloCliente extends Thread {
     private final MulticastSocket sCliente;
     private final InetAddress grupo;
     private final Chat chat;
+
     public HiloCliente(MulticastSocket sCliente, InetAddress grupo, String userName) {
         this.sCliente = sCliente;
         this.grupo = grupo;
@@ -36,13 +37,18 @@ public class HiloCliente extends Thread {
             while (true) {
                 buffer = new byte[4000];
                 entrada = new DatagramPacket(buffer, buffer.length);
-                sCliente.receive(entrada);
+                if (!sCliente.isClosed()) {
+                    sCliente.receive(entrada);
 
-                ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(entrada.getData());
-                ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
-                Mensaje mensaje = (Mensaje) objectInputStream.readObject();
-                objectInputStream.close();
-                chat.agregarMensaje(mensaje.getMensaje());
+                    ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(entrada.getData());
+                    ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
+                    Object object = objectInputStream.readObject();
+                    objectInputStream.close();
+                    if (object instanceof Mensaje) {
+                        Mensaje mensaje = (Mensaje) object;
+                        chat.agregarMensaje(mensaje.getMensaje());
+                    }
+                }
             }
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException(e);
