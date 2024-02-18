@@ -5,6 +5,7 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
 
 
 public class Chat extends JFrame {
@@ -66,13 +67,11 @@ public class Chat extends JFrame {
         return Texto;
     }
 
-    public synchronized void agregarUsuarioLista(String usuario) {
-        modelo.addElement(usuario);
-        listaUsuarios.setModel(modelo);
-    }
-
-    public synchronized void limpiarLista() {
+    public synchronized void actualizarLista(ArrayList usuarios) {
         modelo.removeAllElements();
+        for (Object usuario: usuarios){
+            modelo.addElement(((Usuario)usuario).getUserName());
+        }
         listaUsuarios.setModel(modelo);
     }
 }

@@ -11,6 +11,8 @@ import java.io.ObjectInputStream;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.util.ArrayList;
+import java.util.List;
 
 public class HiloCliente extends Thread {
     private final MulticastSocket sCliente;
@@ -44,11 +46,13 @@ public class HiloCliente extends Thread {
                     ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(entrada.getData());
                     ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
                     Object object = objectInputStream.readObject();
-                    System.out.println(object.getClass());
                     objectInputStream.close();
                     if (object instanceof Mensaje) {
                         Mensaje mensaje = (Mensaje) object;
                         chat.agregarMensaje(mensaje.getMensaje());
+                    }
+                    else if(object instanceof List<?>){
+                        chat.actualizarLista((ArrayList) object);
                     }
 
                 }
