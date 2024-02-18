@@ -2,6 +2,7 @@ package cliente;
 
 import datos.Chat;
 import datos.Mensaje;
+import datos.Usuario;
 
 import javax.swing.*;
 import java.io.ByteArrayInputStream;
@@ -43,11 +44,13 @@ public class HiloCliente extends Thread {
                     ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(entrada.getData());
                     ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
                     Object object = objectInputStream.readObject();
+                    System.out.println(object.getClass());
                     objectInputStream.close();
                     if (object instanceof Mensaje) {
                         Mensaje mensaje = (Mensaje) object;
                         chat.agregarMensaje(mensaje.getMensaje());
                     }
+
                 }
             }
         } catch (IOException | ClassNotFoundException e) {

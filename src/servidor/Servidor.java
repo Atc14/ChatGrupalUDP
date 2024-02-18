@@ -1,9 +1,14 @@
 package servidor;
 
+import datos.Mensaje;
 import datos.Usuario;
 
-import java.io.IOException;
+import javax.swing.*;
+import java.io.*;
+import java.net.DatagramPacket;
+import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,13 +35,31 @@ public class Servidor {
     }
 
     public static void main(String[] args) {
+        byte[] mensaje;
+        DatagramPacket recibido, envio;
+        MulticastSocket socket;
         try {
-            MulticastSocket socket = new MulticastSocket();
+            socket = new MulticastSocket(6005);
+            InetAddress grupo = InetAddress.getByName("228.0.0.15");
+            socket.joinGroup(grupo);
 
-            HiloServer hs = new HiloServer(socket);
-            hs.start();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            while (true) {
+                mensaje = new byte[4000];
+                recibido = new DatagramPacket(mensaje, mensaje.length);
+                socket.receive(recibido);
+                ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(recibido.getData());
+                ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
+                Object object = objectInputStream.readObject();
+                if (object instanceof Usuario) {
+                    agregarUsuario((Usuario) object);
+                    System.out.println("lista de usuarios: " + getUsuarios());
+                }
+
+            }
+
+        } catch (IOException | ClassNotFoundException ex) {
+            throw new RuntimeException(ex);
         }
+
     }
 }
