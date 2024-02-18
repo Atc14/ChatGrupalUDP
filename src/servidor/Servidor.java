@@ -1,6 +1,6 @@
 package servidor;
 
-import datos.Mensaje;
+import datos.Desconectado;
 import datos.Usuario;
 
 import javax.swing.*;
@@ -8,7 +8,6 @@ import java.io.*;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +26,13 @@ public class Servidor {
         usuarios.remove(usuario);
     }
 
+    public static boolean usuarioValido(String userName) {
+        for (Usuario u : usuarios) {
+            if (u.getUserName().equals(userName)) return false;
+        }
+        return true;
+    }
+
     public static synchronized void enviarUsuarios() {
         try {
             MulticastSocket socket = new MulticastSocket(6005);
@@ -40,11 +46,12 @@ public class Servidor {
             byte[] mensaje = byteArrayOutputStream.toByteArray();
             DatagramPacket envio = new DatagramPacket(mensaje, mensaje.length, grupo, 6005);
             socket.send(envio);
-            socket.close(); 
+            socket.close();
         } catch (IOException ex) {
             ex.printStackTrace();
         }
     }
+
     public static void main(String[] args) {
         byte[] mensaje;
         DatagramPacket recibido, envio;
@@ -62,9 +69,22 @@ public class Servidor {
                 ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
                 Object object = objectInputStream.readObject();
                 if (object instanceof Usuario) {
-                    agregarUsuario((Usuario) object);
-                    System.out.println("lista de usuarios: " + getUsuarios());
-                    enviarUsuarios();
+                    if(usuarioValido(((Usuario) object).getUserName())) {
+                        agregarUsuario((Usuario) object);
+                        System.out.println("lista de usuarios: " + getUsuarios());
+                        enviarUsuarios();
+                    }
+                } else if (object instanceof Desconectado) {
+                    Usuario usuarioEliminar = null;
+                    for (Usuario usuario : getUsuarios()) {
+                        if (usuario.getUserName().equals(((Desconectado) object).getUserName())) {
+                            usuarioEliminar = usuario;
+                        }
+                    }
+                    if (usuarioEliminar != null) {
+                        eliminarUsuario(usuarioEliminar);
+                        enviarUsuarios();
+                    }
                 }
 
             }

@@ -1,16 +1,18 @@
 package cliente;
 
 import datos.Chat;
+import datos.Desconectado;
 import datos.Mensaje;
 import datos.Usuario;
 
 import javax.swing.*;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.*;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +31,31 @@ public class HiloCliente extends Thread {
         chat.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         chat.setLocationRelativeTo(null);
         chat.setContentPane(chat.getTexto());
+        chat.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                try{
+                    Desconectado desconectado = new Desconectado(userName);
+                    byte[] buffer;
+                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                    ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
+                    objectOutputStream.writeObject(new Usuario(userName));
+                    objectOutputStream.close();
+
+                    buffer = byteArrayOutputStream.toByteArray();
+                    DatagramPacket envio = new DatagramPacket(buffer, buffer.length, InetAddress.getByName("228.0.0.15"), 6005);
+                    sCliente.send(envio);
+                    sCliente.leaveGroup(grupo);
+                    sCliente.close();
+                    chat.dispose();
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+
+        });
     }
+
 
     @Override
     public void run() {
@@ -50,22 +76,16 @@ public class HiloCliente extends Thread {
                     if (object instanceof Mensaje) {
                         Mensaje mensaje = (Mensaje) object;
                         chat.agregarMensaje(mensaje.getMensaje());
-                    }
-                    else if(object instanceof List<?>){
+                    } else if (object instanceof List<?>) {
                         chat.actualizarLista((ArrayList) object);
                     }
 
                 }
             }
-        } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException(e);
+        } catch (IOException | ClassNotFoundException ignored) {
+
         } finally {
-            try {
-                sCliente.leaveGroup(grupo);
-                sCliente.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            sCliente.close();
         }
 
     }

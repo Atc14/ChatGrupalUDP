@@ -2,10 +2,10 @@ package datos;
 
 import java.io.Serializable;
 
-public class Usuario implements Serializable {
+public class Desconectado implements Serializable {
     private final String userName;
 
-    public Usuario(String userName) {
+    public Desconectado(String userName){
         this.userName = userName;
     }
 

@@ -1,14 +1,15 @@
 package cliente;
 
+import datos.Mensaje;
 import datos.Usuario;
 
 import javax.swing.*;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.net.UnknownHostException;
+import java.util.List;
 
 public class Cliente {
     public static void main(String[] args) throws RuntimeException {
@@ -30,6 +31,7 @@ public class Cliente {
             buffer = byteArrayOutputStream.toByteArray();
             DatagramPacket envio = new DatagramPacket(buffer, buffer.length, InetAddress.getByName("228.0.0.15"), 6005);
             socket.send(envio);
+
 
             HiloCliente hc = new HiloCliente(socket, grupo, userName);
             hc.start();
