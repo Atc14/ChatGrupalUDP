@@ -1,15 +1,14 @@
 package cliente;
 
-import datos.Mensaje;
 import datos.Usuario;
 
 import javax.swing.*;
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.net.UnknownHostException;
-import java.util.List;
 
 public class Cliente {
     public static void main(String[] args) throws RuntimeException {

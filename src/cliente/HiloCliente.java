@@ -12,48 +12,21 @@ import java.io.*;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class HiloCliente extends Thread {
     private final MulticastSocket sCliente;
     private final InetAddress grupo;
+    private final String userName;
     private final Chat chat;
 
     public HiloCliente(MulticastSocket sCliente, InetAddress grupo, String userName) {
         this.sCliente = sCliente;
         this.grupo = grupo;
+        this.userName = userName;
         this.chat = new Chat(userName, sCliente);
-        chat.setVisible(true);
-        chat.setSize(800, 600);
-        chat.setTitle("Chat Web : " + userName);
-        chat.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        chat.setLocationRelativeTo(null);
-        chat.setContentPane(chat.getTexto());
-        chat.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                try{
-                    Desconectado desconectado = new Desconectado(userName);
-                    byte[] buffer;
-                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                    ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
-                    objectOutputStream.writeObject(new Usuario(userName));
-                    objectOutputStream.close();
 
-                    buffer = byteArrayOutputStream.toByteArray();
-                    DatagramPacket envio = new DatagramPacket(buffer, buffer.length, InetAddress.getByName("228.0.0.15"), 6005);
-                    sCliente.send(envio);
-                    sCliente.leaveGroup(grupo);
-                    sCliente.close();
-                    chat.dispose();
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
-            }
-
-        });
     }
 
 
@@ -61,7 +34,38 @@ public class HiloCliente extends Thread {
     public void run() {
         byte[] buffer;
         DatagramPacket entrada;
+        SwingUtilities.invokeLater(() -> {
+                    chat.setVisible(true);
+                    chat.setSize(800, 600);
+                    chat.setTitle("Chat Web : " + userName);
+                    chat.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                    chat.setLocationRelativeTo(null);
+                    chat.setContentPane(chat.getTexto());
+                    chat.addWindowListener(new WindowAdapter() {
+                        @Override
+                        public void windowClosing(WindowEvent e) {
+                            try {
+                                Desconectado desconectado = new Desconectado(userName);
+                                byte[] buffer;
+                                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                                ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
+                                objectOutputStream.writeObject(desconectado);
+                                objectOutputStream.close();
 
+                                buffer = byteArrayOutputStream.toByteArray();
+                                DatagramPacket envio = new DatagramPacket(buffer, buffer.length, InetAddress.getByName("228.0.0.15"), 6005);
+                                sCliente.send(envio);
+                                sCliente.leaveGroup(grupo);
+                                sCliente.close();
+                                chat.dispose();
+                            } catch (IOException ex) {
+                                throw new RuntimeException(ex);
+                            }
+                        }
+
+                    });
+                }
+        );
         try {
             while (true) {
                 buffer = new byte[4000];
